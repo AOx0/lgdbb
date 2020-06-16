@@ -330,6 +330,7 @@ class Client(discord.Client):
             except:
                 bot.conversations[message.author.name].reset()
                 return
+
         if ('su' in (str(message.content)).lower()) and bot.usuarios['users'][f'{message.author.name}'][
             'admin'] is True:
             print("Admin")
@@ -528,6 +529,8 @@ class Client(discord.Client):
                 text = message.content.replace(remove_text, '')
                 try:
                     bot.cuota(text)
+                except:
+                    pass
 
 
         elif bot.usuarios["users"][f"{message.author.name}"]["activado"] is True and (
