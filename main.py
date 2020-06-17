@@ -104,6 +104,10 @@ class Bot:
 
         self.saveUsr()
 
+    def cobroTodo(self):
+        self.cobroCuota()
+        self.cobroInteres()
+
     def activar(self, usuario):
         bot.usuarios["users"][f"{usuario}"]["activado"] = True
 
@@ -128,6 +132,7 @@ class Bot:
     def prestamo(self,usuario, por, cant):
         bot.usuarios["users"][f"{usuario}"]["presNo"] += (por)
         bot.usuarios["users"][f"{usuario}"]["pres"] += (cant)
+
     def cuota(self, por):
         bot.usuarios["cuota"] = int(por)
 
@@ -182,7 +187,6 @@ class Client(discord.Client):
         )"""
 
     async def on_message(self, message):
-        bot.saveUsr()
         with open('objs.txt', 'r') as f:  # Python 3: open(..., 'rb')
             bot.usuarios = json.load(f)
             for p in bot.usuarios['users']:
@@ -480,10 +484,29 @@ class Client(discord.Client):
                     except:
                         await message.channel.send(f"Error activado: {i}")
             elif 'su ayuda' in str(message.content).lower() or 'help' in str(message.content).lower():
-                ayuda = '''
+                ayuda1 = '''
                 El banco cuenta con los siguientes comandos:
-                    su -e USUARIO: Consulta el estado de cuenta del USUARIO.
-                    su -c: Ejecuta cambios directos en el bot.
+                
+                - - GESTION:
+                    su estado todos - Muestra el estado de cuenta de todos los usuarios
+                    su estado USUARIO - Consulta el estado de cuenta del USUARIO
+                    su cuota 0.00 - Asigna el acido a cobrar diariamente a todos los usuarios
+                    su cobro interes - Aumenta la deuda en relacion con el interes de préstamos a todos los usuarios
+                
+                - - USUARIOS Y ADMINS:
+                    su activar @USUARIO (mención o nombre excato) - Activa la cuenta del USUARIO
+                    su desactivar @USUARIO (mención o nombre excato) - Desactiva la cuenta del USUARIO
+                    su admin @USUARIO (mención o nombre excato) - Activa la cuenta del USUARIO y lo hace admin
+                    su noadmin @USUARIO (mención o nombre excato) - Quita el admin del USUARIO
+                    su superadmin @USUARIO (mención o nombre excato) -  Activa la cuenta del USUARIO, lo hace admin y super-admin
+                    su nosuperadmin @USUARIO (mención o nombre excato) -  Quita el super-admin del USUARIO
+                '''
+
+                ayuda2 = '''- - AVANZADO: (No tocar de preferencia)
+                    su global: Consulta el estado general del bot.
+                    su cobro cuotas - Fuerza el cobro a todas las cuentas con relacion al valor de "cuota" diaria
+                    su cobro todo - Fuerza el cobro a todas las cuentas la cuota diaria y aumenta deudas en base a su interes
+                    su comando [Codigo Python 3.8]: Ejecuta cambios directos en el bot.
                         bot.usuarios["cuota"] = Valor (Valor de cuota diaria por guardar ácido)
                         bot.usuarios["debug"] = Valor (True o Flase) NO TOCAR
                         bot.usuarios["users"]["USUARIO"]["activado"] = Valor (True o Flase)
@@ -500,9 +523,9 @@ class Client(discord.Client):
                             bot.usuarios["users"]["NSH~Alejandro"]["presNo"] = 0.05
                             bot.usuarios["users"]["NSH~Alejandro"]["pres"] = 100000
                             (Pone un préstamo de 100000 con un 5% de aumento diario al usuario NSH~Alejandro)
-                    su -gg: Consulta el estado general del bot.
                 '''
-                await message.author.send(ayuda)
+                await message.author.send(ayuda1)
+                await message.author.send(ayuda2)
             elif 'su activar' in str(message.content).lower():
                 remove_text = 'su activar '
                 user = message.content.replace(remove_text, '')
@@ -531,46 +554,46 @@ class Client(discord.Client):
                     bot.cuota(text)
                 except:
                     pass
-
+            elif 'su cobrar inter' in str(message.content).lower():
+                bot.cobroInteres()
+            elif 'su cobrar cuota' in str(message.content).lower():
+                bot.cobroCuota()
+            elif 'su cobrar todo' in str(message.content).lower():
+                bot.cobroTodo()
 
         elif bot.usuarios["users"][f"{message.author.name}"]["activado"] is True and (
                 'bank' in str(message.content).lower()):
-            if (('bank retirar' == (str(message.content)).lower()) or (
-                    'bank -r' == (str(message.content)).lower())) and (
+            if ('bank retirar' == (str(message.content)).lower()) and (
                     (str(message.guild) == GUILD) or str(message.channel.type) == "private"):
                 bot.conversations[message.author.name].tipo = 're1'
                 await message.channel.send(f'Cuanto deseas retirar, {message.author.name}?')
-            elif (('bank depositar' == (str(message.content)).lower()) or (
-                    'bank -d' == (str(message.content)).lower())) and (
+            elif ('bank depositar' == (str(message.content)).lower()) and (
                     (str(message.guild) == GUILD) or str(message.channel.type) == "private"):
                 bot.conversations[message.author.name].tipo = 'in1'
                 await message.channel.send(f'Cuanto deseas depositar, {message.author.name}?')
-            elif ('bank estado' == (str(message.content)).lower()) or ('bank -e' == (str(message.content)).lower()):
+            elif 'bank estado' == (str(message.content)).lower():
                 text = f'Nombre Cliente: {message.author.name}'
                 text2 = f'Ácido ahorrado: {bot.usuarios["users"][message.author.name]["acid"]}'
                 text3 = f'Prestamo: {bot.usuarios["users"][message.author.name]["pres"]} con {bot.usuarios["users"][message.author.name]["presNo"]} de interés diario'
 
                 await message.channel.send(f' {text}\n{text2}\n{text3}')
-            elif (('bank transferir' == (str(message.content)).lower()) or (
-                    'bank -t' == (str(message.content)).lower())) and ((str(message.guild) == GUILD) or (
+            elif ('bank transferir' == (str(message.content)).lower()) and ((str(message.guild) == GUILD) or (
                     (str(message.guild) == GUILD) or str(message.channel.type) == "private")):
                 bot.conversations[message.author.name].tipo = 'tr1'
                 await message.channel.send(f'Cuanto deseas transferir {message.author.name}?')
-            elif (('bank help' == (str(message.content)).lower()) or (
-                    'bank ayuda' == (str(message.content)).lower())) and ((str(message.guild) == GUILD) or (
+            elif (('bank help' in (str(message.content)).lower()) or (
+                    'bank ayuda' in (str(message.content)).lower())) and ((str(message.guild) == GUILD) or (
                     (str(message.guild) == GUILD) or str(message.channel.type) == "private")):
-                ayuda = """
+                ayudasu = """
                 El banco cuenta con los siguientes comandos:
-                     - Retira @ para tenerlo físico.
-                    bank retirar [cantidad]
-                     - Ingresa @ físico a tu cuenta.
-                    bank depositar [cantidad]
-                     - Consulta tu estado de cuenta.
-                    bank estado
-                     - Transfiere @ a otro usuario del banco.
-                    bank transferir [cantidad] a [usuario]
+                    bank retirar 0000 - Retira @ para tenerlo físico
+                    bank depositar 00000 - Ingresa @ físico a tu cuenta
+                    bank estado - Consulta tu estado de cuenta
+                    bank transferir 0000 a @USUARIO - Transfiere @ a otro usuario del banco
+                    
+                    bank ayuda - Muestra éste mensaje de ayuda
                 """
-                await message.channel.send(ayuda)
+                await message.channel.send(ayudasu)
             else:
                 try:
                     """Bot direct commands"""
@@ -582,7 +605,7 @@ class Client(discord.Client):
                             bot.conversations[message.author.name].cantidad = int(final)
                             bot.conversations[message.author.name].genID()
                             await message.author.send(
-                                f'Esperando autorización de la solicitud {bot.conversations[message.author.name].id}\nAhora debes recoger la cantidad física de @ en tu unidad de servicio más cercana con tu ID.\n'
+                                f'———————\nSolicitud Creada\nID : {bot.conversations[message.author.name].id}\n———————\nAhora debes retirar\nel ácido @ físico en\nuna sucursal del\nBanco.\n———————\nEntrega éste\nmensaje o el ID al\nencargado de la\nsucursal.\nLGD BANK\n———————'
                             )
                             bot.conversations[message.author.name].tipo = 're2'
                         except:
@@ -599,7 +622,7 @@ class Client(discord.Client):
                             bot.conversations[message.author.name].genID()
 
                             await message.author.send(
-                                f'Esperando autorización de la solicitud {bot.conversations[message.author.name].id}\nAhora debes entregar la cantidad física de @ en tu unidad de servicio más cercana con tu ID.\n'
+                                f'———————\nSolicitud Creada\nID : {bot.conversations[message.author.name].id}\n———————\nAhora debes llevar\nel ácido @ físico a\nuna sucursal del\nBanco.\n———————\nEntrega éste\nmensaje o el ID al\nencargado de la\nsucursal.\nLGD BANK\n———————'
                             )
                             bot.conversations[message.author.name].tipo = 'in2'
                         except:
