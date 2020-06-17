@@ -136,6 +136,13 @@ class Bot:
     def cuota(self, por):
         bot.usuarios["cuota"] = int(por)
 
+    def mostarLog(self):
+        toSend = ""
+        for i in bot.usuarios["log"]["log"]:
+            toSend += f" -- {bot.usuarios['log']['log'][i]}\n"
+        return toSend
+
+
 class Client(discord.Client):
 
     async def on_ready(self):
@@ -221,24 +228,40 @@ class Client(discord.Client):
         print(f'Message from {message.author} (ID: {message.author.id}): {message.content}')
 
         if bot.usuarios["users"][message.author.name]["admin"] is True:
+            a = discord.Client.get_channel(self=self, id=GUILDID)
             for i in bot.conversations:
                 if bot.conversations[i].tipo == 're2' and str(bot.conversations[i].id) in str(message.content):
+                    if 'cancelar' in str(message.content).lower():
+                        try:
+                            await a.send(f'<@{bot.usuarios["users"][i]["userID"]}>, su retiro de fondos, {bot.conversations[i].id}, fue denegado por un administrador.')
+                        except:
+                            await a.send(f'{i}, su retiro de fondos, {bot.conversations[i].id}, fue denegado por un administrador.')
+                        bot.conversations[i].reset()
+                        bot.saveUsr()
+                        break
                     print('TERMINADO')
                     bot.cEstado(2, i, bot.conversations[i].cantidad)
-                    await message.channel.send(
-                        f'Transferencia {bot.conversations[message.author.name].id} exitosa.'
-                    )
+                    await a.send(f'Transferencia {bot.conversations[i].id} exitosa.')
                     bot.save2Log(
-                        f"Cantidad: {bot.conversations[i].cantidad} - ID: {bot.conversations[i].id} - User: {i}")
+                        f"RETIRO - Cantidad: {bot.conversations[i].cantidad} - ID: {bot.conversations[i].id} - User: {i}")
                     bot.conversations[i].tipo = 'default'
                     bot.saveUsr()
                 elif bot.conversations[i].tipo == 'in2' and str(bot.conversations[i].id) in str(message.content):
+                    if 'cancelar' in str(message.content).lower():
+                        try:
+                            await a.send(
+                                f'<@{bot.usuarios["users"][i]["userID"]}>, su depósito de fondos, {bot.conversations[i].id}, fue denegado por un administrador.')
+                        except:
+                            await a.send(
+                                f'{i}, su depósito de fondos, {bot.conversations[i].id}, fue denegado por un administrador.')
+                        bot.conversations[i].reset()
+                        bot.saveUsr()
+                        break
                     print('TERMINADO')
                     bot.cEstado(1, i, bot.conversations[i].cantidad)
-                    a = discord.Client.get_channel(self=self, id=GUILDID)
-                    await a.send(f'Transferencia {bot.conversations[message.author.name].id} exitosa.')
+                    await a.send(f'Transferencia {bot.conversations[i].id} exitosa.')
                     bot.save2Log(
-                        f"Cantidad: {bot.conversations[i].cantidad} - ID: {bot.conversations[i].id} - User: {i}")
+                        f"DEPOSITO - Cantidad: {bot.conversations[i].cantidad} - ID: {bot.conversations[i].id} - User: {i}")
                     bot.conversations[i].tipo = 'default'
                     bot.saveUsr()
 
@@ -252,7 +275,7 @@ class Client(discord.Client):
                     bot.conversations[message.author.name].genID()
 
                     await message.author.send(
-                        f'Esperando autorización de la solicitud {bot.conversations[message.author.name].id}\nAhora debes recoger la cantidad física de @ en tu unidad de servicio más cercana con tu ID.\n'
+                        f' ————————\n      LGD BANK\n ————————\n Solicitud Creada\n  ID : {bot.conversations[message.author.name].id}\n ————————\nAhora debes retirar\nel ácido @ físico en\n  una sucursal del\n         Banco.\n ————————\n    Entrega éste\nmensaje o el ID al\n encargado de la\n       sucursal.\n ————————'
                     )
                     bot.conversations[message.author.name].tipo = 're2'
                 except:
@@ -269,7 +292,7 @@ class Client(discord.Client):
                     bot.conversations[message.author.name].genID()
 
                     await message.author.send(
-                        f'Esperando autorización de la solicitud {bot.conversations[message.author.name].id}\nAhora debes entregar la cantidad física de @ en tu unidad de servicio más cercana con tu ID.\n'
+                        f' ————————\n      LGD BANK\n ————————\n Solicitud Creada\n  ID : {bot.conversations[message.author.name].id}\n ————————\nAhora debes llevar\nel ácido @ físico a\n  una sucursal del\n         Banco.\n ————————\n    Entrega éste\nmensaje o el ID al\n encargado de la\n       sucursal.\n ————————'
                     )
                     bot.conversations[message.author.name].tipo = 'in2'
                 except:
@@ -323,7 +346,7 @@ class Client(discord.Client):
                             f'Transferencia {bot.conversations[message.author.name].id} exitosa.')
                         bot.saveUsr()
                         bot.save2Log(
-                            f"Cantidad: {bot.conversations[message.author.name].cantidad} - ID: {bot.conversations[message.author.name].id} - User: {message.author.name}")
+                            f"TRANSFERENCIA - Cantidad: {bot.conversations[message.author.name].cantidad} a {user} - ID: {bot.conversations[message.author.name].id} - User: {message.author.name}")
                         bot.conversations[message.author.name].reset()
                         bot.saveUsr()
                     else:
@@ -399,7 +422,7 @@ class Client(discord.Client):
                     except:
                         await message.channel.send("Usuario no encontrado")
                         return
-                elif 'nosuperadmin' in str(message.content).lower():
+                elif 'su nosuperadmin' in str(message.content).lower():
                     remove_text = 'su nosuperadmin '
                     user = message.content.replace(remove_text, '')
                     for i in bot.usuarios['users']:
@@ -418,9 +441,12 @@ class Client(discord.Client):
                         bot.unSuperAdmin(user)
                     except:
                         await message.channel.send("Usuario no encontrado")
-                elif 'global' in str(message.content).lower():
+                elif 'su global' in str(message.content).lower():
                     bot.saveUsr()
                     await message.author.send(f"SU Global State:\n{json.dumps(bot.usuarios, indent=4)}")
+                elif 'su log' in str(message.content).lower():
+                    text = bot.mostarLog()
+                    await message.author.send(f"LOG:\n{text}")
             if 'su estado' in str(message.content).lower():
                 if 'todos' not in str(message.content):
                     remove_text = 'su estado '
@@ -493,7 +519,7 @@ class Client(discord.Client):
                     su cuota 0.00 - Asigna el acido a cobrar diariamente a todos los usuarios
                     su cobro interes - Aumenta la deuda en relacion con el interes de préstamos a todos los usuarios
                 
-                - - USUARIOS Y ADMINS:
+                - - USUARIOS Y ADMINS:     
                     su activar @USUARIO (mención o nombre excato) - Activa la cuenta del USUARIO
                     su desactivar @USUARIO (mención o nombre excato) - Desactiva la cuenta del USUARIO
                     su admin @USUARIO (mención o nombre excato) - Activa la cuenta del USUARIO y lo hace admin
@@ -503,10 +529,11 @@ class Client(discord.Client):
                 '''
 
                 ayuda2 = '''- - AVANZADO: (No tocar de preferencia)
-                    su global: Consulta el estado general del bot.
+                    su global - Consulta el estado general del bot. (Solo SU_A)
+                    su log - Muestra todos los movimientos realizados. (SU_A)
                     su cobro cuotas - Fuerza el cobro a todas las cuentas con relacion al valor de "cuota" diaria
                     su cobro todo - Fuerza el cobro a todas las cuentas la cuota diaria y aumenta deudas en base a su interes
-                    su comando [Codigo Python 3.8]: Ejecuta cambios directos en el bot.
+                    su comando CODIGO - [Codigo Python 3.8] Ejecuta cambios directos en el bot.
                         bot.usuarios["cuota"] = Valor (Valor de cuota diaria por guardar ácido)
                         bot.usuarios["debug"] = Valor (True o Flase) NO TOCAR
                         bot.usuarios["users"]["USUARIO"]["activado"] = Valor (True o Flase)
@@ -587,7 +614,7 @@ class Client(discord.Client):
                 ayudasu = """
                 El banco cuenta con los siguientes comandos:
                     bank retirar 0000 - Retira @ para tenerlo físico
-                    bank depositar 00000 - Ingresa @ físico a tu cuenta
+                    bank depositar 0000 - Ingresa @ físico a tu cuenta
                     bank estado - Consulta tu estado de cuenta
                     bank transferir 0000 a @USUARIO - Transfiere @ a otro usuario del banco
                     
@@ -605,7 +632,7 @@ class Client(discord.Client):
                             bot.conversations[message.author.name].cantidad = int(final)
                             bot.conversations[message.author.name].genID()
                             await message.author.send(
-                                f'———————\nSolicitud Creada\nID : {bot.conversations[message.author.name].id}\n———————\nAhora debes retirar\nel ácido @ físico en\nuna sucursal del\nBanco.\n———————\nEntrega éste\nmensaje o el ID al\nencargado de la\nsucursal.\nLGD BANK\n———————'
+                                f' ————————\n      LGD BANK\n ————————\n Solicitud Creada\n  ID : {bot.conversations[message.author.name].id}\n ————————\nAhora debes retirar\nel ácido @ físico en\n  una sucursal del\n         Banco.\n ————————\n    Entrega éste\nmensaje o el ID al\n encargado de la\n       sucursal.\n ————————'
                             )
                             bot.conversations[message.author.name].tipo = 're2'
                         except:
@@ -622,7 +649,7 @@ class Client(discord.Client):
                             bot.conversations[message.author.name].genID()
 
                             await message.author.send(
-                                f'———————\nSolicitud Creada\nID : {bot.conversations[message.author.name].id}\n———————\nAhora debes llevar\nel ácido @ físico a\nuna sucursal del\nBanco.\n———————\nEntrega éste\nmensaje o el ID al\nencargado de la\nsucursal.\nLGD BANK\n———————'
+                                f' ————————\n      LGD BANK\n ————————\n Solicitud Creada\n  ID : {bot.conversations[message.author.name].id}\n ————————\nAhora debes llevar\nel ácido @ físico a\n  una sucursal del\n         Banco.\n ————————\n    Entrega éste\nmensaje o el ID al\n encargado de la\n       sucursal.\n ————————'
                             )
                             bot.conversations[message.author.name].tipo = 'in2'
                         except:
@@ -676,7 +703,7 @@ class Client(discord.Client):
                                     f'Transferencia {bot.conversations[message.author.name].id} exitosa.')
                                 bot.saveUsr()
                                 bot.save2Log(
-                                    f"Cantidad: {bot.conversations[message.author.name].cantidad} - ID: {bot.conversations[message.author.name].id} - User: {message.author.name}")
+                                    f"TRANSFERENCIA - Cantidad: {bot.conversations[message.author.name].cantidad} a {user} - ID: {bot.conversations[message.author.name].id} - User: {message.author.name}")
                                 bot.conversations[message.author.name].reset()
                                 bot.saveUsr()
 
