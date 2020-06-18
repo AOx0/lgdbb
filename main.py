@@ -85,6 +85,7 @@ class Bot:
             bot.usuarios = json.load(f)
 
     def cobroCuota(self):
+        # self.usuarios['date'] = str(datetime.date.today())
         self.saveUsr()
         self.loadUsr()
         for i in self.usuarios['users']:
@@ -95,6 +96,7 @@ class Bot:
         self.saveUsr()
 
     def cobroInteres(self):
+        # self.usuarios['date'] = str(datetime.date.today())
         self.saveUsr()
         self.loadUsr()
         for i in self.usuarios['users']:
@@ -105,6 +107,7 @@ class Bot:
         self.saveUsr()
 
     def cobroTodo(self):
+        self.usuarios['date'] = str(datetime.date.today())
         self.cobroCuota()
         self.cobroInteres()
 
@@ -142,44 +145,39 @@ class Bot:
             toSend += f" -- {bot.usuarios['log']['log'][i]}\n"
         return toSend
 
+    def addUsuario(self, i):
+        self.usuarios["users"][f"{i.name}"] = {}
+        elements = {"userID": str(i.id), "uMention": str(f"{i}"), "activado": False, "acid": 0, "superAdmin": False,
+                    "presNo": 0, "pres": 0}
+        user = bot.usuarios["users"][f"{i.name}"]
+        for element in elements:
+            user[f"{element}"] = elements[element]
+
 
 class Client(discord.Client):
 
     async def on_ready(self):
-        print(f'{client.user} has connected to Discord!')
+        # print(f'{client.user} has connected to Discord!')
         for guild in client.guilds:
             if guild.name == GUILD:
                 break
 
         print(
-            f'{client.user} is connected to the following guild:\n'
-            f'{guild.name}(id: {guild.id})\n'
+            f'{client.user} is conectado:\n'
+            f'Guild - {guild.name}(id: {guild.id})\n'
         )
 
-        members = '\n - '.join([member.name for member in guild.members])
+        bot.loadUsr()
 
-        with open('objs.txt', 'r') as f:  # Python 3: open(..., 'rb')
-            bot.usuarios = json.load(f)
+        if str(bot.usuarios['date']) != str(datetime.date.today()): bot.cobroTodo()
 
-        if str(bot.usuarios['date']) != str(datetime.date.today()):
-            bot.usuarios['date'] = str(datetime.date.today())
-            bot.cobroCuota()
-            bot.cobroInteres()
+        # members = '\n - '.join([member.name for member in guild.members])
         # bot.usuarios.append(bot.Usuario('NSH~Alejandro'))
-        print(f'Guild Members:\n - {members}')
-        print(f'{client}')
+        # print(f'Guild Members:\n - {members}')
+        # print(f'{client}')
 
         for i in guild.members:
-            if str(i.name) not in bot.usuarios["users"]:
-                bot.usuarios["users"][f"{i.name}"] = {}
-                bot.usuarios["users"][f"{i.name}"]["userID"] = str(i.id)
-                bot.usuarios["users"][f"{i.name}"]["uMention"] = str(f"{i}")
-                bot.usuarios["users"][f"{i.name}"]["activado"] = False
-                bot.usuarios["users"][f"{i.name}"]["acid"] = 0
-                bot.usuarios["users"][f"{i.name}"]["admin"] = False
-                bot.usuarios["users"][f"{i.name}"]["superAdmin"] = False
-                bot.usuarios["users"][f"{i.name}"]["presNo"] = 0
-                bot.usuarios["users"][f"{i.name}"]["pres"] = 0
+            if str(i.name) not in bot.usuarios["users"]: bot.addUsuario(i)
 
         bot.saveUsr()
 
@@ -194,34 +192,15 @@ class Client(discord.Client):
         )"""
 
     async def on_message(self, message):
-        with open('objs.txt', 'r') as f:  # Python 3: open(..., 'rb')
-            bot.usuarios = json.load(f)
-            for p in bot.usuarios['users']:
-                print(f"{p} : {bot.usuarios['users'][f'{p}']}")
+        bot.loadUsr()
+        for p in bot.usuarios['users']:
+            print(f"{p} : {bot.usuarios['users'][f'{p}']}")
 
-        if bot.usuarios["debug"] is True or message.author == client.user:
-            return
+        if bot.usuarios["debug"] is True or message.author == client.user: return
+        if str(message.author.name) not in bot.usuarios["users"]: bot.addUsuario(message.author)
+        if str(bot.usuarios['date']) != str(datetime.date.today()): bot.cobroTodo()
+        if message.author.name not in bot.conversations.keys(): bot.conversations[message.author.name] = bot.Conversacion()
 
-        if str(message.author.name) not in bot.usuarios["users"]:
-            bot.usuarios["users"][f"{message.author.name}"] = {}
-            bot.usuarios["users"][f"{message.author.name}"]["userID"] = str(message.author.id)
-            bot.usuarios["users"][f"{message.author.name}"]["uMention"] = str(f"{message.author}")
-            bot.usuarios["users"][f"{message.author.name}"]["activado"] = False
-            bot.usuarios["users"][f"{message.author.name}"]["acid"] = 0
-            bot.usuarios["users"][f"{message.author.name}"]["admin"] = False
-            bot.usuarios["users"][f"{message.author.name}"]["superAdmin"] = False
-            bot.usuarios["users"][f"{message.author.name}"]["presNo"] = 0
-            bot.usuarios["users"][f"{message.author.name}"]["pres"] = 0
-
-        if str(bot.usuarios['date']) != str(datetime.date.today()):
-            bot.usuarios['date'] = str(datetime.date.today())
-            bot.cobroCuota()
-            bot.cobroInteres()
-
-        if message.author.name in bot.conversations.keys():
-            pass
-        else:
-            bot.conversations[message.author.name] = bot.Conversacion()
 
         print(f"Channel ID: {message.channel.id}")
         print(f"Keys: {bot.conversations.keys()}")
@@ -535,11 +514,11 @@ class Client(discord.Client):
                     su cobro todo - Fuerza el cobro a todas las cuentas la cuota diaria y aumenta deudas en base a su interes
                     su comando CODIGO - [Codigo Python 3.8] Ejecuta cambios directos en el bot.
                         bot.usuarios["cuota"] = Valor (Valor de cuota diaria por guardar ácido)
-                        bot.usuarios["debug"] = Valor (True o Flase) NO TOCAR
-                        bot.usuarios["users"]["USUARIO"]["activado"] = Valor (True o Flase)
+                        bot.usuarios["debug"] = Valor (True o False) NO TOCAR
+                        bot.usuarios["users"]["USUARIO"]["activado"] = Valor (True o False)
                         bot.usuarios["users"]["USUARIO"]["acid"] = Valor (Ácido en la cuenta)
-                        bot.usuarios["users"]["USUARIO"]["admin"] = Valor (True o Flase)
-                        bot.usuarios["users"]["USUARIO"]["superAdmin"] = Valor (True o Flase)
+                        bot.usuarios["users"]["USUARIO"]["admin"] = Valor (True o False)
+                        bot.usuarios["users"]["USUARIO"]["superAdmin"] = Valor (True o False)
                         bot.usuarios["users"]["USUARIO"]["presNo"] = Valor (% de interés)
                         bot.usuarios["users"]["USUARIO"]["pres"] = Valor (Cantidad del Préstamo)
                         su c bot.saveUsr(): Guarda todos los cambios
