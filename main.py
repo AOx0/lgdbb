@@ -82,7 +82,7 @@ class Bot:
 
     def loadUsr(self):
         with open('objs.txt', 'r') as f:  # Python 3: open(..., 'rb')
-            bot.usuarios = json.load(f)
+            self.usuarios = json.load(f)
 
     def cobroCuota(self):
         # self.usuarios['date'] = str(datetime.date.today())
@@ -112,44 +112,44 @@ class Bot:
         self.cobroInteres()
 
     def activar(self, usuario):
-        bot.usuarios["users"][f"{usuario}"]["activado"] = True
+        self.usuarios["users"][f"{usuario}"]["activado"] = True
 
     def desActivar(self, usuario):
-        bot.usuarios["users"][f"{usuario}"]["activado"] = False
+        self.usuarios["users"][f"{usuario}"]["activado"] = False
 
     def makeAdmin(self, usuario):
         self.activar(usuario)
-        bot.usuarios["users"][f"{usuario}"]["admin"] = True
+        self.usuarios["users"][f"{usuario}"]["admin"] = True
 
     def makeSuperAdmin(self, usuario):
         self.activar(usuario)
         self.makeAdmin(usuario)
-        bot.usuarios["users"][f"{usuario}"]["superAdmin"] = True
+        self.usuarios["users"][f"{usuario}"]["superAdmin"] = True
 
     def unAdmin(self, usuario):
-        bot.usuarios["users"][f"{usuario}"]["admin"] = False
+        self.usuarios["users"][f"{usuario}"]["admin"] = False
 
     def unSuperAdmin(self, usuario):
-        bot.usuarios["users"][f"{usuario}"]["superAdmin"] = False
+        self.usuarios["users"][f"{usuario}"]["superAdmin"] = False
 
     def prestamo(self,usuario, por, cant):
-        bot.usuarios["users"][f"{usuario}"]["presNo"] += (por)
-        bot.usuarios["users"][f"{usuario}"]["pres"] += (cant)
+        self.usuarios["users"][f"{usuario}"]["presNo"] += (por)
+        self.usuarios["users"][f"{usuario}"]["pres"] += (cant)
 
     def cuota(self, por):
-        bot.usuarios["cuota"] = int(por)
+        self.usuarios["cuota"] = int(por)
 
     def mostarLog(self):
         toSend = ""
-        for i in bot.usuarios["log"]["log"]:
-            toSend += f" -- {bot.usuarios['log']['log'][i]}\n"
+        for i in self.usuarios["log"]["log"]:
+            toSend += f" -- {self.usuarios['log']['log'][i]}\n"
         return toSend
 
     def addUsuario(self, i):
         self.usuarios["users"][f"{i.name}"] = {}
         elements = {"userID": str(i.id), "uMention": str(f"{i}"), "activado": False, "acid": 0, "superAdmin": False,
                     "presNo": 0, "pres": 0}
-        user = bot.usuarios["users"][f"{i.name}"]
+        user = self.usuarios["users"][f"{i.name}"]
         for element in elements:
             user[f"{element}"] = elements[element]
 
