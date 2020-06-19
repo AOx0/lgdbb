@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
-GUILDID = 721616698477641749
+GUILDIDS = 721616698477641749
 
 
 class Bot:
