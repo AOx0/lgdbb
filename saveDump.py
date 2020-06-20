@@ -15,7 +15,7 @@ data = {
         },
         "Legendary Bank": {
             "userID" : "721303081379168347",
-            "uMention" : "@Legendary Bank#5251",
+            "uMention" : "Legendary Bank#5251",
             "activado" : True,
             "acid": 0,
             "admin": True,

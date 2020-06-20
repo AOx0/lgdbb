@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
-GUILDIDS = 721616698477641749
+GUILDID = 721616698477641749
 
 
 class Bot:
@@ -147,8 +147,8 @@ class Bot:
 
     def addUsuario(self, i):
         self.usuarios["users"][f"{i.name}"] = {}
-        elements = {"userID": str(i.id), "uMention": str(f"{i}"), "activado": False, "acid": 0, "superAdmin": False,
-                    "presNo": 0, "pres": 0}
+        elements = {"userID": str(i.id), "uMention": str(f"{i}"), "activado": False, "acid": 0,"admin" : False,
+                    "superAdmin": False, "presNo": 0, "pres": 0}
         user = self.usuarios["users"][f"{i.name}"]
         for element in elements:
             user[f"{element}"] = elements[element]
@@ -177,7 +177,17 @@ class Client(discord.Client):
         # print(f'{client}')
 
         for i in guild.members:
-            if str(i.name) not in bot.usuarios["users"]: bot.addUsuario(i)
+            if str(i.name) not in bot.usuarios["users"]:
+                idChange = False
+                for j in bot.usuarios['users']:
+                    if str(i.id) == str(bot.usuarios['users'][f'{j}']['userID']):
+                        bot.usuarios['users'][f'{i.name}'] = bot.usuarios['users'].pop(f'{j}')
+                        bot.usuarios["users"][f"{i.name}"]['uMention'] = str(f'{i}')
+                        idChange = True
+                        break
+                if idChange is False:
+                    bot.addUsuario(i)
+
 
         bot.saveUsr()
 
@@ -197,7 +207,16 @@ class Client(discord.Client):
             print(f"{p} : {bot.usuarios['users'][f'{p}']}")
 
         if bot.usuarios["debug"] is True or message.author == client.user: return
-        if str(message.author.name) not in bot.usuarios["users"]: bot.addUsuario(message.author)
+        if str(message.author.name) not in bot.usuarios["users"]:
+            idChange = False
+            for i in bot.usuarios['users']:
+                if str(message.author.id) == str(bot.usuarios['users'][f'{i}']['userID']):
+                    bot.usuarios['users'][f'{message.author.name}'] = bot.usuarios['users'].pop(f'{i}')
+                    bot.usuarios["users"][f"{message.author.name}"]['uMention'] = str(f'{i}')
+                    idChange = True
+                    break
+            if idChange is False:
+                bot.addUsuario(message.author)
         if str(bot.usuarios['date']) != str(datetime.date.today()): bot.cobroTodo()
         if message.author.name not in bot.conversations.keys(): bot.conversations[message.author.name] = bot.Conversacion()
 
@@ -426,6 +445,22 @@ class Client(discord.Client):
                 elif 'su log' in str(message.content).lower():
                     text = bot.mostarLog()
                     await message.author.send(f"LOG:\n{text}")
+                elif 'su cuota' in str(message.content).lower():
+                    remove_text = 'su cuota '
+                    text = message.content.replace(remove_text, '')
+                    try:
+                        bot.cuota(text)
+                    except:
+                        pass
+                elif 'su terminal' in str(message.content):
+                    remove_text = 'su terminal '
+                    text = message.content.replace(remove_text, '')
+                    try:
+                        exec(text)
+                    except Exception as error:
+                        traceback.print_exc()
+                        await message.author.send(f"Invalid Command\n{error}")
+                        return
             if 'su estado' in str(message.content).lower():
                 if 'todos' not in str(message.content):
                     remove_text = 'su estado '
@@ -473,15 +508,6 @@ class Client(discord.Client):
                             final += f'--------------------\n{text}\n{text2}\n{text3}\n'
                             # await message.author.send(f'--------------------\n{text}\n{text2}\n{text3}')
                     await message.author.send(final)
-            elif 'su terminal' in str(message.content):
-                remove_text = 'su terminal '
-                text = message.content.replace(remove_text, '')
-                try:
-                    exec(text)
-                except Exception as error:
-                    traceback.print_exc()
-                    await message.author.send(f"Invalid Command\n{error}")
-                    return
             elif 'su activar todos' in str(message.content).lower():
                 for i in bot.usuarios["users"]:
                     try:
@@ -553,13 +579,6 @@ class Client(discord.Client):
                     await message.channel.send("Usuario no encontrado")
             elif 'su prestamo' in str(message.content).lower():
                 pass
-            elif 'su cuota' in str(message.content).lower():
-                remove_text = 'su cuota '
-                text = message.content.replace(remove_text, '')
-                try:
-                    bot.cuota(text)
-                except:
-                    pass
             elif 'su cobrar inter' in str(message.content).lower():
                 bot.cobroInteres()
             elif 'su cobrar cuota' in str(message.content).lower():
@@ -599,6 +618,14 @@ class Client(discord.Client):
                     
                     bank ayuda - Muestra éste mensaje de ayuda
                 """
+                await message.channel.send(ayudasu)
+            elif (('bank state' in (str(message.content)).lower()) and ((str(message.guild) == GUILD) or (
+                    (str(message.guild) == GUILD) or str(message.channel.type) == "private"))):
+                administradores = ""
+                for i in bot.usuarios['users']:
+                    if (bot.usuarios['users'][f'{i}']['admin'] or bot.usuarios['users'][f'{i}']['superAdmin']) and str(f'{i}') != "Legendary Bank":
+                        administradores += f"  {i}\n"
+                ayudasu = f"Banco: LGD Bank\n——————————\nFecha: {bot.usuarios['date']}\nCuota diaria: {float(bot.usuarios['cuota']) * 100}%\nUsarios: {len(bot.usuarios['users']) - 1}\n——————————\nAdministradores:\n{administradores}"
                 await message.channel.send(ayudasu)
             else:
                 try:
