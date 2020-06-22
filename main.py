@@ -21,27 +21,27 @@ class Bot:
 
     class Conversacion:
         def __init__(self):
+            """Inicializa la clase conversación"""
             self.tipo = 'default'
             self.cantidad = 0
             self.chat = 'default'
             self.id = 9999999999
 
-        def luhnCheck(self, card_number):
-            '''luhnCheck. Validates the CC with the last number'''
+        @staticmethod
+        def luhn_check(card_number):
+            """luhn_check. Validates the CC with the last number"""
             num = list(map(int, str(card_number)))
             return sum(num[::-2] + [sum(divmod(d * 2, 10))
                                     for d in num[-2::-2]]) % 10 == 0
 
-        def genID(self):
-
+        def gen_id(self):
             while True:
                 return1 = "9"
-                return2 = ""
                 ints1 = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
                 for _ in range(9):
                     return1 += str(random.choice(ints1))
                 for i in range(9):
-                    if self.luhnCheck(f'{return1}{i}') is True:
+                    if self.luhn_check(f'{return1}{i}') is True:
                         return2 = f'{return1}{i}'
                         self.id = return2
                         return
@@ -57,101 +57,126 @@ class Bot:
         self.main_admin = 386927261
         self.admins = [386927261]
 
-    def save2Log(self, content):
+    def save_log(self, content):
         self.usuarios["log"]["logs"] += 1
         self.usuarios["log"]["log"][self.usuarios["log"]["logs"]] = content
-        self.saveUsr()
+        self.save_usr()
 
-    def cobrarInteresTransfer(self, cuenta, cantidad):
+    def cobrar_interes_transfer(self, cuenta, cantidad):
         por = 0.05
         self.usuarios['users'][cuenta]['acid'] -= cantidad * por
         self.usuarios['users']['Legendary Bank']['acid'] += cantidad * por
-        self.saveUsr()
+        self.save_usr()
 
-    def cEstado(self, modo, usuario, cantidad):
+    def c_estado(self, modo, usuario, cantidad):
         if modo == 1:
             self.usuarios['users'][usuario]['acid'] += cantidad
         else:
             self.usuarios['users'][usuario]['acid'] -= cantidad
-        self.saveUsr()
+        self.save_usr()
         return
 
-    def saveUsr(self):
+    def save_usr(self):
         with open('objs.txt', 'w') as f:  # Python 3: open(..., 'wb')
             json.dump(self.usuarios, f)
 
-    def loadUsr(self):
+    def load_usr(self):
         with open('objs.txt', 'r') as f:  # Python 3: open(..., 'rb')
             self.usuarios = json.load(f)
 
-    def cobroCuota(self):
+    def cobro_cuota(self):
         # self.usuarios['date'] = str(datetime.date.today())
-        self.saveUsr()
-        self.loadUsr()
+        self.save_usr()
+        self.load_usr()
         for i in self.usuarios['users']:
             q = self.usuarios['users'][i]['acid'] * self.usuarios['cuota']
             self.usuarios['users'][i]['acid'] -= q
             self.usuarios['users']['Legendary Bank']['acid'] += q
 
-        self.saveUsr()
+        self.save_usr()
 
-    def cobroInteres(self):
+    def cobro_interes(self):
         # self.usuarios['date'] = str(datetime.date.today())
-        self.saveUsr()
-        self.loadUsr()
+        self.save_usr()
+        self.load_usr()
         for i in self.usuarios['users']:
             if self.usuarios['users'][i]['pres'] != 0:
                 q = self.usuarios['users'][i]['pres'] * self.usuarios['users'][i]['presNo']
                 self.usuarios['users'][i]['pres'] += q
 
-        self.saveUsr()
+        self.save_usr()
 
-    def cobroTodo(self):
+    def cobro_todo(self):
         self.usuarios['date'] = str(datetime.date.today())
-        self.cobroCuota()
-        self.cobroInteres()
+        self.cobro_cuota()
+        self.cobro_interes()
 
     def activar(self, usuario):
         self.usuarios["users"][f"{usuario}"]["activado"] = True
 
-    def desActivar(self, usuario):
+    def desactivar(self, usuario):
         self.usuarios["users"][f"{usuario}"]["activado"] = False
 
-    def makeAdmin(self, usuario):
+    def make_admin(self, usuario):
         self.activar(usuario)
         self.usuarios["users"][f"{usuario}"]["admin"] = True
 
-    def makeSuperAdmin(self, usuario):
+    def make_super_admin(self, usuario):
         self.activar(usuario)
-        self.makeAdmin(usuario)
+        self.make_admin(usuario)
         self.usuarios["users"][f"{usuario}"]["superAdmin"] = True
 
-    def unAdmin(self, usuario):
+    def un_admin(self, usuario):
         self.usuarios["users"][f"{usuario}"]["admin"] = False
 
-    def unSuperAdmin(self, usuario):
+    def un_super_admin(self, usuario):
         self.usuarios["users"][f"{usuario}"]["superAdmin"] = False
 
-    def prestamo(self,usuario, por, cant):
-        self.usuarios["users"][f"{usuario}"]["presNo"] += (por)
-        self.usuarios["users"][f"{usuario}"]["pres"] += (cant)
+    def prestamo(self, usuario, por, cant):
+        self.usuarios["users"][f"{usuario}"]["presNo"] += por
+        self.usuarios["users"][f"{usuario}"]["pres"] += cant
 
     def cuota(self, por):
         self.usuarios["cuota"] = int(por)
 
-    def mostarLog(self):
-        toSend = ""
+    def mostar_log(self):
+        to_send = ""
         for i in self.usuarios["log"]["log"]:
-            toSend += f" -- {self.usuarios['log']['log'][i]}\n"
-        return toSend
+            to_send += f" -- {self.usuarios['log']['log'][i]}\n"
+        return to_send
 
-    def addUsuario(self, i):
+    def add_usuario(self, i):
         self.usuarios["users"][f"{i.name}"] = {}
-        elements = {"userID": str(i.id), "uMention": str(f"{i}"), "activado": False, "acid": 0,"admin" : False,
+        elements = {"userID": str(i.id), "uMention": str(f"{i}"), "activado": False, "acid": 0, "admin": False,
                     "superAdmin": False, "presNo": 0, "pres": 0}
         user = self.usuarios["users"][f"{i.name}"]
         for element in elements:
             user[f"{element}"] = elements[element]
+
+    def alternative_search(self, user):
+        for i in self.usuarios['users']:
+            print(str(i).lower())
+            if str(i).lower() == user:
+                user = str(i)
+                return user
+            else:
+                user1 = user
+                user1 = user1.replace("<@", '')
+                user1 = user1.replace(">", '')
+                print(user1)
+                if self.usuarios["users"][i]["userID"] == user1:
+                    user = str(i)
+                    return user
+                else:
+                    print("Hasta aca")
+                    user1 = user
+                    user1 = user1.replace("<@", '')
+                    user1 = user1.replace("!", '')
+                    user1 = user1.replace(">", '')
+                    if self.usuarios["users"][i]["userID"] == user1:
+                        user = str(i)
+                        return user
+        return user
 
 
 class Client(discord.Client):
@@ -167,9 +192,10 @@ class Client(discord.Client):
             f'Guild - {guild.name}(id: {guild.id})\n'
         )
 
-        bot.loadUsr()
+        bot.load_usr()
 
-        if str(bot.usuarios['date']) != str(datetime.date.today()): bot.cobroTodo()
+        if str(bot.usuarios['date']) != str(datetime.date.today()):
+            bot.cobro_todo()
 
         # members = '\n - '.join([member.name for member in guild.members])
         # bot.usuarios.append(bot.Usuario('NSH~Alejandro'))
@@ -178,18 +204,17 @@ class Client(discord.Client):
 
         for i in guild.members:
             if str(i.name) not in bot.usuarios["users"]:
-                idChange = False
+                id_change: bool = False
                 for j in bot.usuarios['users']:
                     if str(i.id) == str(bot.usuarios['users'][f'{j}']['userID']):
                         bot.usuarios['users'][f'{i.name}'] = bot.usuarios['users'].pop(f'{j}')
                         bot.usuarios["users"][f"{i.name}"]['uMention'] = str(f'{i}')
-                        idChange = True
+                        id_change = True
                         break
-                if idChange is False:
-                    bot.addUsuario(i)
+                if id_change is False:
+                    bot.add_usuario(i)
 
-
-        bot.saveUsr()
+        bot.save_usr()
 
         for p in bot.usuarios['users']:
             print(f"{p} : {bot.usuarios['users'][f'{p}']}")
@@ -202,24 +227,26 @@ class Client(discord.Client):
         )"""
 
     async def on_message(self, message):
-        bot.loadUsr()
+        bot.load_usr()
         for p in bot.usuarios['users']:
             print(f"{p} : {bot.usuarios['users'][f'{p}']}")
 
-        if bot.usuarios["debug"] is True or message.author == client.user: return
+        if bot.usuarios["debug"] is True or message.author == client.user:
+            return
         if str(message.author.name) not in bot.usuarios["users"]:
-            idChange = False
+            id_change = False
             for i in bot.usuarios['users']:
                 if str(message.author.id) == str(bot.usuarios['users'][f'{i}']['userID']):
                     bot.usuarios['users'][f'{message.author.name}'] = bot.usuarios['users'].pop(f'{i}')
                     bot.usuarios["users"][f"{message.author.name}"]['uMention'] = str(f'{i}')
-                    idChange = True
+                    id_change = True
                     break
-            if idChange is False:
-                bot.addUsuario(message.author)
-        if str(bot.usuarios['date']) != str(datetime.date.today()): bot.cobroTodo()
-        if message.author.name not in bot.conversations.keys(): bot.conversations[message.author.name] = bot.Conversacion()
-
+            if id_change is False:
+                bot.add_usuario(message.author)
+        if str(bot.usuarios['date']) != str(datetime.date.today()):
+            bot.cobro_todo()
+        if message.author.name not in bot.conversations.keys():
+            bot.conversations[message.author.name] = bot.Conversacion()
 
         print(f"Channel ID: {message.channel.id}")
         print(f"Keys: {bot.conversations.keys()}")
@@ -231,19 +258,21 @@ class Client(discord.Client):
                 if bot.conversations[i].tipo == 're2' and str(bot.conversations[i].id) in str(message.content):
                     if 'cancelar' in str(message.content).lower():
                         try:
-                            await a.send(f'<@{bot.usuarios["users"][i]["userID"]}>, su retiro de fondos, {bot.conversations[i].id}, fue denegado por un administrador.')
+                            await a.send(
+                                f'<@{bot.usuarios["users"][i]["userID"]}>, su retiro de fondos, {bot.conversations[i].id}, fue denegado por un administrador.')
                         except:
-                            await a.send(f'{i}, su retiro de fondos, {bot.conversations[i].id}, fue denegado por un administrador.')
+                            await a.send(
+                                f'{i}, su retiro de fondos, {bot.conversations[i].id}, fue denegado por un administrador.')
                         bot.conversations[i].reset()
-                        bot.saveUsr()
+                        bot.save_usr()
                         break
                     print('TERMINADO')
-                    bot.cEstado(2, i, bot.conversations[i].cantidad)
+                    bot.c_estado(2, i, bot.conversations[i].cantidad)
                     await a.send(f'Transferencia {bot.conversations[i].id} exitosa.')
-                    bot.save2Log(
+                    bot.save_log(
                         f"RETIRO - Cantidad: {bot.conversations[i].cantidad} - ID: {bot.conversations[i].id} - User: {i}")
                     bot.conversations[i].tipo = 'default'
-                    bot.saveUsr()
+                    bot.save_usr()
                 elif bot.conversations[i].tipo == 'in2' and str(bot.conversations[i].id) in str(message.content):
                     if 'cancelar' in str(message.content).lower():
                         try:
@@ -253,24 +282,24 @@ class Client(discord.Client):
                             await a.send(
                                 f'{i}, su depósito de fondos, {bot.conversations[i].id}, fue denegado por un administrador.')
                         bot.conversations[i].reset()
-                        bot.saveUsr()
+                        bot.save_usr()
                         break
                     print('TERMINADO')
-                    bot.cEstado(1, i, bot.conversations[i].cantidad)
+                    bot.c_estado(1, i, bot.conversations[i].cantidad)
                     await a.send(f'Transferencia {bot.conversations[i].id} exitosa.')
-                    bot.save2Log(
+                    bot.save_log(
                         f"DEPOSITO - Cantidad: {bot.conversations[i].cantidad} - ID: {bot.conversations[i].id} - User: {i}")
                     bot.conversations[i].tipo = 'default'
-                    bot.saveUsr()
+                    bot.save_usr()
 
         if bot.conversations[message.author.name].tipo == 're1':
             if "cancel" in message.content:
                 bot.conversations[message.author.name].reset()
-                bot.saveUsr()
+                bot.save_usr()
             else:
                 try:
                     bot.conversations[message.author.name].cantidad = int(message.content)
-                    bot.conversations[message.author.name].genID()
+                    bot.conversations[message.author.name].gen_id()
 
                     await message.author.send(
                         f' ————————\n      LGD BANK\n ————————\n Solicitud Creada\n  ID : {bot.conversations[message.author.name].id}\n ————————\nAhora debes retirar\nel ácido @ físico en\n  una sucursal del\n         Banco.\n ————————\n    Entrega éste\nmensaje o el ID al\n encargado de la\n       sucursal.\n ————————'
@@ -278,16 +307,16 @@ class Client(discord.Client):
                     bot.conversations[message.author.name].tipo = 're2'
                 except:
                     bot.conversations[message.author.name].reset()
-                    bot.saveUsr()
+                    bot.save_usr()
                     return
         elif bot.conversations[message.author.name].tipo == 'in1':
             if "cancel" in message.content:
                 bot.conversations[message.author.name].reset()
-                bot.saveUsr()
+                bot.save_usr()
             else:
                 try:
                     bot.conversations[message.author.name].cantidad = int(message.content)
-                    bot.conversations[message.author.name].genID()
+                    bot.conversations[message.author.name].gen_id()
 
                     await message.author.send(
                         f' ————————\n      LGD BANK\n ————————\n Solicitud Creada\n  ID : {bot.conversations[message.author.name].id}\n ————————\nAhora debes llevar\nel ácido @ físico a\n  una sucursal del\n         Banco.\n ————————\n    Entrega éste\nmensaje o el ID al\n encargado de la\n       sucursal.\n ————————'
@@ -295,12 +324,12 @@ class Client(discord.Client):
                     bot.conversations[message.author.name].tipo = 'in2'
                 except:
                     bot.conversations[message.author.name].reset()
-                    bot.saveUsr()
+                    bot.save_usr()
                     return
         elif bot.conversations[message.author.name].tipo == 'tr1':
             if "cancel" in message.content:
                 bot.conversations[message.author.name].reset()
-                bot.saveUsr()
+                bot.save_usr()
             else:
                 try:
                     bot.conversations[message.author.name].cantidad = int(message.content)
@@ -308,45 +337,33 @@ class Client(discord.Client):
                     bot.conversations[message.author.name].tipo = 'tr2'
                 except:
                     bot.conversations[message.author.name].reset()
-                    bot.saveUsr()
+                    bot.save_usr()
                     return
         elif bot.conversations[message.author.name].tipo == 'tr2':
             try:
                 if "cancel" in message.content:
                     bot.conversations[message.author.name].reset()
-                    bot.saveUsr()
+                    bot.save_usr()
                 else:
-                    bot.conversations[message.author.name].genID()
+                    bot.conversations[message.author.name].gen_id()
                     user = message.content
-                    for i in bot.usuarios['users']:
-                        print(str(i).lower())
-                        if str(i).lower() == user:
-                            user = str(i)
-                            break
-                        else:
-                            user1 = user.replace("<@", '')
-                            user1 = user1.replace(">", '')
-                            print(user1)
-                            if bot.usuarios["users"][i]["userID"] == user1:
-                                user = str(i)
-                                break
-                    if bot.usuarios['users'][message.author.name]["acid"] - bot.conversations[
-                        message.author.name].cantidad >= 0:
+                    user = bot.alternative_search(user)
+                    if bot.usuarios['users'][message.author.name]["acid"] - bot.conversations[message.author.name].cantidad >= 0:
                         bot.usuarios['users'][message.author.name]["acid"] -= bot.conversations[
                             message.author.name].cantidad
                         bot.usuarios['users'][user]["acid"] += bot.conversations[
                             message.author.name].cantidad
-                        bot.cobrarInteresTransfer(user,
-                                                  bot.conversations[message.author.name].cantidad)
+                        bot.cobrar_interes_transfer(user,
+                                                    bot.conversations[message.author.name].cantidad)
                         print("Descontado interés")
                         a = discord.Client.get_channel(self=self, id=GUILDID)
                         await a.send(
                             f'Transferencia {bot.conversations[message.author.name].id} exitosa.')
-                        bot.saveUsr()
-                        bot.save2Log(
+                        bot.save_usr()
+                        bot.save_log(
                             f"TRANSFERENCIA - Cantidad: {bot.conversations[message.author.name].cantidad} a {user} - ID: {bot.conversations[message.author.name].id} - User: {message.author.name}")
                         bot.conversations[message.author.name].reset()
-                        bot.saveUsr()
+                        bot.save_usr()
                     else:
                         await message.channel.send(
                             f'Error al procesar la transferencia {bot.conversations[message.author.name].id}: pocos fondos'
@@ -356,94 +373,49 @@ class Client(discord.Client):
                 bot.conversations[message.author.name].reset()
                 return
 
-        if ('su' in (str(message.content)).lower()) and bot.usuarios['users'][f'{message.author.name}'][
-            'admin'] is True:
+        if ('su' in (str(message.content)).lower()) and bot.usuarios['users'][f'{message.author.name}']['admin'] is True:
             print("Admin")
             if bot.usuarios['users'][f'{message.author.name}']['superAdmin'] is True:
                 if 'su admin' in str(message.content).lower():
                     remove_text = 'su admin '
                     user = message.content.replace(remove_text, '')
-                    for i in bot.usuarios['users']:
-                        print(str(i).lower())
-                        if str(i).lower() == user:
-                            user = str(i)
-                            break
-                        else:
-                            user1 = user.replace("<@", '')
-                            user1 = user1.replace(">", '')
-                            print(user1)
-                            if bot.usuarios["users"][i]["userID"] == user1:
-                                user = str(i)
-                                break
+                    user = bot.alternative_search(user)
                     try:
-                        bot.makeAdmin(user)
+                        bot.make_admin(user)
                     except:
                         await message.channel.send("Usuario no encontrado")
                         return
                 elif 'su superadmin' in str(message.content).lower():
                     remove_text = 'su superadmin '
                     user = message.content.replace(remove_text, '')
-                    for i in bot.usuarios['users']:
-                        print(str(i).lower())
-                        if str(i).lower() == user:
-                            user = str(i)
-                            break
-                        else:
-                            user1 = user.replace("<@", '')
-                            user1 = user1.replace(">", '')
-                            print(user1)
-                            if bot.usuarios["users"][i]["userID"] == user1:
-                                user = str(i)
-                                break
+                    user = bot.alternative_search(user)
                     try:
-                        bot.makeSuperAdmin(user)
+                        bot.make_super_admin(user)
                     except:
                         await message.channel.send("Usuario no encontrado")
                         return
                 elif 'su noadmin' in str(message.content).lower():
                     remove_text = 'su noadmin '
                     user = message.content.replace(remove_text, '')
-                    for i in bot.usuarios['users']:
-                        print(str(i).lower())
-                        if str(i).lower() == user:
-                            user = str(i)
-                            break
-                        else:
-                            user1 = user.replace("<@", '')
-                            user1 = user1.replace(">", '')
-                            print(user1)
-                            if bot.usuarios["users"][i]["userID"] == user1:
-                                user = str(i)
-                                break
+                    user = bot.alternative_search(user)
                     try:
-                        bot.unAdmin(user)
+                        bot.un_admin(user)
                     except:
                         await message.channel.send("Usuario no encontrado")
                         return
                 elif 'su nosuperadmin' in str(message.content).lower():
                     remove_text = 'su nosuperadmin '
                     user = message.content.replace(remove_text, '')
-                    for i in bot.usuarios['users']:
-                        print(str(i).lower())
-                        if str(i).lower() == user:
-                            user = str(i)
-                            break
-                        else:
-                            user1 = user.replace("<@", '')
-                            user1 = user1.replace(">", '')
-                            print(user1)
-                            if bot.usuarios["users"][i]["userID"] == user1:
-                                user = str(i)
-                                break
+                    user = bot.alternative_search(user)
                     try:
-                        bot.unSuperAdmin(user)
+                        bot.un_super_admin(user)
                     except:
                         await message.channel.send("Usuario no encontrado")
                 elif 'su global' in str(message.content).lower():
-                    bot.saveUsr()
+                    bot.save_usr()
                     await message.author.send(f"SU Global State:\n{json.dumps(bot.usuarios, indent=4)}")
                 elif 'su log' in str(message.content).lower():
-                    text = bot.mostarLog()
+                    text = bot.mostar_log()
                     await message.author.send(f"LOG:\n{text}")
                 elif 'su cuota' in str(message.content).lower():
                     remove_text = 'su cuota '
@@ -465,18 +437,7 @@ class Client(discord.Client):
                 if 'todos' not in str(message.content):
                     remove_text = 'su estado '
                     text = message.content.replace(remove_text, '')
-                    for i in bot.usuarios['users']:
-                        print(str(i).lower())
-                        if str(i).lower() == text:
-                            text = str(i)
-                            break
-                        else:
-                            user1 = text.replace("<@", '')
-                            user1 = user1.replace(">", '')
-                            print(user1)
-                            if bot.usuarios["users"][i]["userID"] == user1:
-                                text = str(i)
-                                break
+                    text = bot.alternative_search(text)
                     text1 = f'Nombre Cliente: {text}'
                     text2 = f'Ácido ahorrado: {bot.usuarios["users"][text]["acid"]}'
                     text3 = f'Prestamo: {bot.usuarios["users"][text]["pres"]} con {bot.usuarios["users"][text]["presNo"]} de interés diario'
@@ -495,8 +456,7 @@ class Client(discord.Client):
                         text2 = f'Ácido ahorrado: {bot.usuarios["users"][i]["acid"]}'
                         text3 = f'Prestamo: {bot.usuarios["users"][i]["pres"]} con {bot.usuarios["users"][i]["presNo"]} de interés diario'
 
-                        if bot.usuarios["users"][i]["admin"] is True and bot.usuarios["users"][message.author.name][
-                            "superAdmin"] is True:
+                        if bot.usuarios["users"][i]["admin"] is True and bot.usuarios["users"][message.author.name]["superAdmin"] is True:
                             final += f'--------------------\n{text}\n{text2}\n{text3}\n'
                             # await message.author.send(f'--------------------\n{text}\n{text2}\n{text3}')
                         elif bot.usuarios["users"][i]["admin"] is True and \
@@ -515,64 +475,14 @@ class Client(discord.Client):
                     except:
                         await message.channel.send(f"Error activado: {i}")
             elif 'su ayuda' in str(message.content).lower() or 'help' in str(message.content).lower():
-                ayuda1 = '''
-                El banco cuenta con los siguientes comandos:
-                
-                - - GESTION:
-                    su estado todos - Muestra el estado de cuenta de todos los usuarios
-                    su estado USUARIO - Consulta el estado de cuenta del USUARIO
-                    su cuota 0.00 - Asigna el acido a cobrar diariamente a todos los usuarios
-                    su cobro interes - Aumenta la deuda en relacion con el interes de préstamos a todos los usuarios
-                
-                - - USUARIOS Y ADMINS:     
-                    su activar @USUARIO (mención o nombre excato) - Activa la cuenta del USUARIO
-                    su desactivar @USUARIO (mención o nombre excato) - Desactiva la cuenta del USUARIO
-                    su admin @USUARIO (mención o nombre excato) - Activa la cuenta del USUARIO y lo hace admin
-                    su noadmin @USUARIO (mención o nombre excato) - Quita el admin del USUARIO
-                    su superadmin @USUARIO (mención o nombre excato) -  Activa la cuenta del USUARIO, lo hace admin y super-admin
-                    su nosuperadmin @USUARIO (mención o nombre excato) -  Quita el super-admin del USUARIO
-                '''
-
-                ayuda2 = '''- - AVANZADO: (No tocar de preferencia)
-                    su global - Consulta el estado general del bot. (Solo SU_A)
-                    su log - Muestra todos los movimientos realizados. (SU_A)
-                    su cobro cuotas - Fuerza el cobro a todas las cuentas con relacion al valor de "cuota" diaria
-                    su cobro todo - Fuerza el cobro a todas las cuentas la cuota diaria y aumenta deudas en base a su interes
-                    su comando CODIGO - [Codigo Python 3.8] Ejecuta cambios directos en el bot.
-                        bot.usuarios["cuota"] = Valor (Valor de cuota diaria por guardar ácido)
-                        bot.usuarios["debug"] = Valor (True o False) NO TOCAR
-                        bot.usuarios["users"]["USUARIO"]["activado"] = Valor (True o False)
-                        bot.usuarios["users"]["USUARIO"]["acid"] = Valor (Ácido en la cuenta)
-                        bot.usuarios["users"]["USUARIO"]["admin"] = Valor (True o False)
-                        bot.usuarios["users"]["USUARIO"]["superAdmin"] = Valor (True o False)
-                        bot.usuarios["users"]["USUARIO"]["presNo"] = Valor (% de interés)
-                        bot.usuarios["users"]["USUARIO"]["pres"] = Valor (Cantidad del Préstamo)
-                        su c bot.saveUsr(): Guarda todos los cambios
-                        bot.cobroCuota(): Cobra la cuota de membresía diaria a todos los usuarios
-                        bot.cobroInteres(): Aumenta la deuda de acuerdo al interés de cada prestamo a todos los usuarios
-                        Ejemplo: bot.usuarios["users"]["NSH~Alejandro"]["activado"] = False (Desactiva la cuenta)
-                        Ejemplo 2:
-                            bot.usuarios["users"]["NSH~Alejandro"]["presNo"] = 0.05
-                            bot.usuarios["users"]["NSH~Alejandro"]["pres"] = 100000
-                            (Pone un préstamo de 100000 con un 5% de aumento diario al usuario NSH~Alejandro)
-                '''
+                ayuda1 = "El banco cuenta con los siguientes comandos:\n- - GESTION:\n    su estado todos - Muestra el estado de cuenta de todos los usuarios\n    su estado USUARIO - Consulta el estado de cuenta del USUARIO\n    su cuota 0.00 - Asigna el acido a cobrar diariamente a todos los usuarios\n    su cobro interes - Aumenta la deuda en relacion con el interes de préstamos a todos los usuarios\n\n- - USUARIOS Y ADMINS:     \n    su activar @USUARIO (mención o nombre excato) - Activa la cuenta del USUARIO\n    su desactivar @USUARIO (mención o nombre excato) - Desactiva la cuenta del USUARIO\n    su admin @USUARIO (mención o nombre excato) - Activa la cuenta del USUARIO y lo hace admin\n    su noadmin @USUARIO (mención o nombre excato) - Quita el admin del USUARIO\n    su superadmin @USUARIO (mención o nombre excato) -  Activa la cuenta del USUARIO, lo hace admin y super-admin\n    su nosuperadmin @USUARIO (mención o nombre excato) -  Quita el super-admin del USUARIO"
+                ayuda2 = '- - AVANZADO: (No tocar de preferencia)\n    su global - Consulta el estado general del bot. (Solo SU_A)\n    su log - Muestra todos los movimientos realizados. (SU_A)\n    su cobro cuotas - Fuerza el cobro a todas las cuentas con relacion al valor de "cuota" diaria\n    su cobro todo - Fuerza el cobro a todas las cuentas la cuota diaria y aumenta deudas en base a su interes\n    su comando CODIGO - [Codigo Python 3.8] Ejecuta cambios directos en el bot.\n        bot.usuarios["cuota"] = Valor (Valor de cuota diaria por guardar ácido)\n        bot.usuarios["debug"] = Valor (True o False) NO TOCAR\n        bot.usuarios["users"]["USUARIO"]["activado"] = Valor (True o False)\n        bot.usuarios["users"]["USUARIO"]["acid"] = Valor (Ácido en la cuenta)\n        bot.usuarios["users"]["USUARIO"]["admin"] = Valor (True o False)\n        bot.usuarios["users"]["USUARIO"]["superAdmin"] = Valor (True o False)\n        bot.usuarios["users"]["USUARIO"]["presNo"] = Valor (% de interés)\n        bot.usuarios["users"]["USUARIO"]["pres"] = Valor (Cantidad del Préstamo)\n        su c bot.save_usr(): Guarda todos los cambios\n        bot.cobro_cuota(): Cobra la cuota de membresía diaria a todos los usuarios\n        bot.cobro_interes(): Aumenta la deuda de acuerdo al interés de cada prestamo a todos los usuarios\n        Ejemplo: bot.usuarios["users"]["NSH~Alejandro"]["activado"] = False (Desactiva la cuenta)\n        Ejemplo 2:\n            bot.usuarios["users"]["NSH~Alejandro"]["presNo"] = 0.05\n            bot.usuarios["users"]["NSH~Alejandro"]["pres"] = 100000\n            (Pone un préstamo de 100000 con un 5% de aumento diario al usuario NSH~Alejandro)'
                 await message.author.send(ayuda1)
                 await message.author.send(ayuda2)
             elif 'su activar' in str(message.content).lower():
                 remove_text = 'su activar '
                 user = message.content.replace(remove_text, '')
-                for i in bot.usuarios['users']:
-                    print(str(i).lower())
-                    if str(i).lower() == user:
-                        user = str(i)
-                        break
-                    else:
-                        user1 = user.replace("<@", '')
-                        user1 = user1.replace(">", '')
-                        print(user1)
-                        if bot.usuarios["users"][i]["userID"] == user1:
-                            user = str(i)
-                            break
+                user = bot.alternative_search(user)
                 try:
                     bot.activar(user)
                 except:
@@ -580,11 +490,11 @@ class Client(discord.Client):
             elif 'su prestamo' in str(message.content).lower():
                 pass
             elif 'su cobrar inter' in str(message.content).lower():
-                bot.cobroInteres()
+                bot.cobro_interes()
             elif 'su cobrar cuota' in str(message.content).lower():
-                bot.cobroCuota()
+                bot.cobro_cuota()
             elif 'su cobrar todo' in str(message.content).lower():
-                bot.cobroTodo()
+                bot.cobro_todo()
 
         elif bot.usuarios["users"][f"{message.author.name}"]["activado"] is True and (
                 'bank' in str(message.content).lower()):
@@ -599,7 +509,7 @@ class Client(discord.Client):
             elif 'bank estado' == (str(message.content)).lower():
                 text = f'Nombre Cliente: {message.author.name}'
                 text2 = f'Ácido ahorrado: {bot.usuarios["users"][message.author.name]["acid"]}'
-                text3 = f'Prestamo: {bot.usuarios["users"][message.author.name]["pres"]} con {bot.usuarios["users"][message.author.name]["presNo"]} de interés diario'
+                text3 = f'Prestamo: {bot.usuarios["users"][message.author.name]["pres"]} con {bot.usuarios["users"][message.author.name]["presNo"]} de interés diario '
 
                 await message.channel.send(f' {text}\n{text2}\n{text3}')
             elif ('bank transferir' == (str(message.content)).lower()) and ((str(message.guild) == GUILD) or (
@@ -623,36 +533,37 @@ class Client(discord.Client):
                     (str(message.guild) == GUILD) or str(message.channel.type) == "private"))):
                 administradores = ""
                 for i in bot.usuarios['users']:
-                    if (bot.usuarios['users'][f'{i}']['admin'] or bot.usuarios['users'][f'{i}']['superAdmin']) and str(f'{i}') != "Legendary Bank":
+                    if (bot.usuarios['users'][f'{i}']['admin'] or bot.usuarios['users'][f'{i}']['superAdmin']) and str(
+                            f'{i}') != "Legendary Bank":
                         administradores += f"  {i}\n"
                 ayudasu = f"Banco: LGD Bank\n——————————\nFecha: {bot.usuarios['date']}\nCuota diaria: {float(bot.usuarios['cuota']) * 100}%\nUsarios: {len(bot.usuarios['users']) - 1}\n——————————\nAdministradores:\n{administradores}"
                 await message.channel.send(ayudasu)
             else:
                 try:
                     """Bot direct commands"""
-                    if (('bank retirar' in (str(message.content)).lower())) and (
+                    if ('bank retirar' in (str(message.content)).lower()) and (
                             (str(message.guild) == GUILD) or str(message.channel.type) == "private"):
                         remove_text = 'bank retirar '
                         final = (str(message.content).lower()).replace(remove_text, '')
                         try:
                             bot.conversations[message.author.name].cantidad = int(final)
-                            bot.conversations[message.author.name].genID()
+                            bot.conversations[message.author.name].gen_id()
                             await message.author.send(
                                 f' ————————\n      LGD BANK\n ————————\n Solicitud Creada\n  ID : {bot.conversations[message.author.name].id}\n ————————\nAhora debes retirar\nel ácido @ físico en\n  una sucursal del\n         Banco.\n ————————\n    Entrega éste\nmensaje o el ID al\n encargado de la\n       sucursal.\n ————————'
                             )
                             bot.conversations[message.author.name].tipo = 're2'
                         except:
                             bot.conversations[message.author.name].reset()
-                            bot.saveUsr()
+                            bot.save_usr()
                             return
 
-                    elif (('bank depositar' in (str(message.content)).lower())) and (
+                    elif ('bank depositar' in (str(message.content)).lower()) and (
                             (str(message.guild) == GUILD) or str(message.channel.type) == "private"):
                         remove_text = 'bank depositar '
                         final = (str(message.content).lower()).replace(remove_text, '')
                         try:
                             bot.conversations[message.author.name].cantidad = int(final)
-                            bot.conversations[message.author.name].genID()
+                            bot.conversations[message.author.name].gen_id()
 
                             await message.author.send(
                                 f' ————————\n      LGD BANK\n ————————\n Solicitud Creada\n  ID : {bot.conversations[message.author.name].id}\n ————————\nAhora debes llevar\nel ácido @ físico a\n  una sucursal del\n         Banco.\n ————————\n    Entrega éste\nmensaje o el ID al\n encargado de la\n       sucursal.\n ————————'
@@ -661,9 +572,9 @@ class Client(discord.Client):
                         except:
                             traceback.print_exc()
                             bot.conversations[message.author.name].reset()
-                            bot.saveUsr()
+                            bot.save_usr()
                             return
-                    elif (('bank transferir' in (str(message.content)).lower())) and ((str(message.guild) == GUILD) or (
+                    elif ('bank transferir' in (str(message.content)).lower()) and ((str(message.guild) == GUILD) or (
                             (str(message.guild) == GUILD) or str(message.channel.type) == "private")):
                         remove_text1 = 'bank transferir '
                         remove_text2 = " a "
@@ -671,47 +582,35 @@ class Client(discord.Client):
                         final = final.replace(remove_text2, '')
                         q = ""
                         user = ""
-                        forQ = True
+                        for_q = True
                         for i in final:
-                            if i in ("0123456789") and forQ is True:
+                            if i in ("0123456789") and for_q is True:
                                 q += str(i)
                             else:
-                                forQ = False
+                                for_q = False
                                 user += str(i)
                         print(q, user)
                         try:
                             bot.conversations[message.author.name].cantidad = int(q)
-                            bot.conversations[message.author.name].genID()
-                            for i in bot.usuarios['users']:
-                                print(str(i).lower())
-                                if str(i).lower() == user:
-                                    user = str(i)
-                                    break
-                                else:
-                                    user1 = user.replace("<@", '')
-                                    user1 = user1.replace(">", '')
-                                    print(user1)
-                                    if bot.usuarios["users"][i]["userID"] == user1:
-                                        user = str(i)
-                                        break
+                            bot.conversations[message.author.name].gen_id()
+                            user = bot.alternative_search(user)
 
-                            if bot.usuarios['users'][message.author.name]["acid"] - bot.conversations[
-                                message.author.name].cantidad >= 0:
+                            if bot.usuarios['users'][message.author.name]["acid"] - bot.conversations[message.author.name].cantidad >= 0:
                                 bot.usuarios['users'][message.author.name]["acid"] -= bot.conversations[
                                     message.author.name].cantidad
                                 bot.usuarios['users'][user]["acid"] += bot.conversations[
                                     message.author.name].cantidad
-                                bot.cobrarInteresTransfer(user,
-                                                          bot.conversations[message.author.name].cantidad)
+                                bot.cobrar_interes_transfer(user,
+                                                            bot.conversations[message.author.name].cantidad)
                                 print("Descontado interés")
                                 a = discord.Client.get_channel(self=self, id=GUILDID)
                                 await a.send(
                                     f'Transferencia {bot.conversations[message.author.name].id} exitosa.')
-                                bot.saveUsr()
-                                bot.save2Log(
+                                bot.save_usr()
+                                bot.save_log(
                                     f"TRANSFERENCIA - Cantidad: {bot.conversations[message.author.name].cantidad} a {user} - ID: {bot.conversations[message.author.name].id} - User: {message.author.name}")
                                 bot.conversations[message.author.name].reset()
-                                bot.saveUsr()
+                                bot.save_usr()
 
                         except:
                             traceback.print_exc()
@@ -722,7 +621,7 @@ class Client(discord.Client):
                     bot.conversations[message.author.name].reset()
                     return
 
-        bot.saveUsr()
+        bot.save_usr()
 
     def __init__(self, bot):
         super().__init__()
