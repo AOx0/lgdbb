@@ -156,26 +156,39 @@ class Bot:
     def alternative_search(self, user):
         for i in self.usuarios['users']:
             print(str(i).lower())
-            if str(i).lower() == user:
+            if str(i).lower() == user.lower():
                 user = str(i)
                 return user
             else:
-                user1 = user
-                user1 = user1.replace("<@", '')
-                user1 = user1.replace(">", '')
-                print(user1)
-                if self.usuarios["users"][i]["userID"] == user1:
+                print(f"1: @{str(i).lower()} - 2: {user}")
+                if f"@{str(i).lower()}" == user.lower():
                     user = str(i)
                     return user
                 else:
-                    print("Hasta aca")
-                    user1 = user
-                    user1 = user1.replace("<@", '')
-                    user1 = user1.replace("!", '')
-                    user1 = user1.replace(">", '')
-                    if self.usuarios["users"][i]["userID"] == user1:
+                    if f"@{str(self.usuarios['users'][f'{i}']['uMention']).lower()}" == user.lower():
                         user = str(i)
                         return user
+                    else:
+                        if f"{str(self.usuarios['users'][f'{i}']['uMention']).lower()}" == user.lower():
+                            user = str(i)
+                            return user
+                        else:
+                            user1 = user
+                            user1 = user1.replace("<@", '')
+                            user1 = user1.replace(">", '')
+                            print(user1)
+                            if self.usuarios["users"][i]["userID"] == user1:
+                                user = str(i)
+                                return user
+                            else:
+                                print("Hasta aca")
+                                user1 = user
+                                user1 = user1.replace("<@", '')
+                                user1 = user1.replace("!", '')
+                                user1 = user1.replace(">", '')
+                                if self.usuarios["users"][i]["userID"] == user1:
+                                    user = str(i)
+                                    return user
         return user
 
 
